@@ -1,5 +1,6 @@
 package com.meroweather.meroweather.Fragments;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,9 +13,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.meroweather.meroweather.DetailActivity;
 import com.meroweather.meroweather.R;
 
 import org.json.JSONArray;
@@ -45,7 +49,8 @@ public class ForecastFragment extends Fragment {
         View v;
         v = inflater.inflate(R.layout.fragment_forecast, container, false);
         listView = (ListView) v.findViewById(R.id.listView_forecast);
-
+        FetchWeatherTask fetchWeatherTask=new FetchWeatherTask();
+        fetchWeatherTask.execute("Kathmandu");
         return v;
     }
 
@@ -65,13 +70,24 @@ public class ForecastFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
             FetchWeatherTask fetchWeatherTask = new FetchWeatherTask();
-            fetchWeatherTask.execute("94043");
+            fetchWeatherTask.execute("Kathmandu");
             return true;
 
         }
         return super.onOptionsItemSelected(item);
     }
+    public class ItemClickListener implements AdapterView.OnItemClickListener{
 
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            // String forecast = mForecastAdapter.getItem(position);
+            String forecast=adapterView.getSelectedItem().toString();
+            Toast.makeText(getActivity(),""+forecast,Toast.LENGTH_SHORT).show();
+            Intent intent=new Intent(getActivity(), DetailActivity.class);
+            startActivity(intent);
+
+        }
+    }
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
@@ -196,7 +212,6 @@ public class ForecastFragment extends Fragment {
 
             // Will contain the raw JSON response as a string.
             String forecastJsonStr = null;
-
             String format = "json";
             String units = "metric";
             int numDays = 7;
@@ -220,6 +235,7 @@ public class ForecastFragment extends Fragment {
                         .build();
 
                 URL url = new URL(builtUri.toString());
+                //URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
 
                 Log.v(LOG_TAG, "Built URI " + builtUri.toString());
 
@@ -269,7 +285,9 @@ public class ForecastFragment extends Fragment {
             }
 
             try {
+
                 return getWeatherDataFromJson(forecastJsonStr, numDays);
+
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
@@ -284,6 +302,7 @@ public class ForecastFragment extends Fragment {
             if (result != null) {
                 mForecastAdapter=new ArrayAdapter<String>(getActivity(),R.layout.listview_item_forecast,R.id.textView_list_item_forecast,result);
                 listView.setAdapter(mForecastAdapter);
+                listView.setOnItemClickListener(new ItemClickListener());
             }
         }
     }
