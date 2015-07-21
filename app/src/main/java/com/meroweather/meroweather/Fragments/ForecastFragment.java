@@ -81,7 +81,7 @@ public class ForecastFragment extends Fragment {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
             // String forecast = mForecastAdapter.getItem(position);
-            String forecast=adapterView.getSelectedItem().toString();
+            String forecast=mForecastAdapter.getItem(i);
             Toast.makeText(getActivity(),""+forecast,Toast.LENGTH_SHORT).show();
             Intent intent=new Intent(getActivity(), DetailActivity.class);
             startActivity(intent);
