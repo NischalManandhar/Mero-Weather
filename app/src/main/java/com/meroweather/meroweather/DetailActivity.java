@@ -1,9 +1,14 @@
 package com.meroweather.meroweather;
 
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.meroweather.meroweather.Fragments.DetailFragment;
 
 
 public class DetailActivity extends ActionBarActivity {
@@ -12,6 +17,13 @@ public class DetailActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+        if(savedInstanceState==null){
+            DetailFragment detailFragment=new DetailFragment();
+            FragmentManager manager=getSupportFragmentManager();
+            FragmentTransaction transaction=manager.beginTransaction();
+            transaction.add(R.id.container_detail,detailFragment);
+            transaction.commit();
+        }
     }
 
     @Override
