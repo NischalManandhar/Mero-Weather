@@ -1,9 +1,11 @@
 package com.meroweather.meroweather.Fragments;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -32,6 +34,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 /**
  * Created by lenevo on 7/21/2015.
@@ -49,8 +52,17 @@ public class ForecastFragment extends Fragment {
         View v;
         v = inflater.inflate(R.layout.fragment_forecast, container, false);
         listView = (ListView) v.findViewById(R.id.listView_forecast);
-        FetchWeatherTask fetchWeatherTask=new FetchWeatherTask();
-        fetchWeatherTask.execute("Kathmandu");
+        // The ArrayAdapter will take data from a source and
+        // use it to populate the ListView it's attached to.
+        mForecastAdapter =
+                new ArrayAdapter<String>(
+                        getActivity(), // The current context (this activity)
+                        R.layout.listview_item_forecast, // The name of the layout ID.
+                        R.id.textView_list_item_forecast, // The ID of the textview to populate.
+                        new ArrayList<String>());//supplying empty array list
+        // Get a reference to the ListView, and attach this adapter to it.
+        listView.setAdapter(mForecastAdapter);
+        listView.setOnItemClickListener(new ItemClickListener());
         return v;
     }
 
@@ -59,7 +71,11 @@ public class ForecastFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
-
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_forecast, menu);
@@ -69,26 +85,40 @@ public class ForecastFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            FetchWeatherTask fetchWeatherTask = new FetchWeatherTask();
-            fetchWeatherTask.execute("Kathmandu");
+            updateWeather();
             return true;
 
         }
         return super.onOptionsItemSelected(item);
     }
-    public class ItemClickListener implements AdapterView.OnItemClickListener{
+
+    public void updateWeather() {
+        FetchWeatherTask fetchWeatherTask = new FetchWeatherTask();
+        //getDefaultSharedPreferences() uses a default preference-file name.
+        // 	getDefaultSharedPreferences(Context context): Gets a SharedPreferences instance that points to the default file
+        // that is used by the preference framework in the given context.
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        //String location=preferences.getString(supplied_value,default_value);
+        String location = preferences.getString(getString(R.string.preferences_location_key), getString(R.string.preferences_location_default));
+        fetchWeatherTask.execute(location);
+    }
+
+
+
+    public class ItemClickListener implements AdapterView.OnItemClickListener {
 
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
             // String forecast = mForecastAdapter.getItem(position);
-            String forecast=mForecastAdapter.getItem(i);
-            Toast.makeText(getActivity(),""+forecast,Toast.LENGTH_SHORT).show();
-            Intent intent=new Intent(getActivity(), DetailActivity.class);
-            intent.putExtra(Intent.EXTRA_TEXT,forecast);
+            String forecast = mForecastAdapter.getItem(i);
+            Toast.makeText(getActivity(), "" + forecast, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getActivity(), DetailActivity.class);
+            intent.putExtra(Intent.EXTRA_TEXT, forecast);
             startActivity(intent);
 
         }
     }
+
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
@@ -112,6 +142,16 @@ public class ForecastFragment extends Fragment {
          * Prepare the weather high/lows for presentation.
          */
         private String formatHighLows(double high, double low) {
+
+            SharedPreferences preferences=PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String unitType=preferences.getString(getString(R.string.preferences_temperature_key), getString(R.string.preferences_temperature_units_metric));
+           // String a=preferences.getString("hi",null);
+            if (unitType.equals(getString(R.string.preferences_temperature_units_imperial))) {
+                high = (high * 1.8) + 32;
+                low = (low * 1.8) + 32;
+            } else if (!unitType.equals(getString(R.string.preferences_temperature_units_metric))) {
+                Log.d(LOG_TAG, "Unit type not found: " + unitType);
+            }
             // For presentation, assume the user doesn't care about tenths of a degree.
             long roundedHigh = Math.round(high);
             long roundedLow = Math.round(low);
@@ -301,9 +341,11 @@ public class ForecastFragment extends Fragment {
         @Override
         protected void onPostExecute(String[] result) {
             if (result != null) {
-                mForecastAdapter=new ArrayAdapter<String>(getActivity(),R.layout.listview_item_forecast,R.id.textView_list_item_forecast,result);
-                listView.setAdapter(mForecastAdapter);
-                listView.setOnItemClickListener(new ItemClickListener());
+                mForecastAdapter.clear();
+                for (String dayForecastStr : result) {
+                    mForecastAdapter.add(dayForecastStr);
+                }
+                // New data is back from the server.  Hooray!
             }
         }
     }
