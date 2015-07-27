@@ -19,6 +19,7 @@ public class MainActivity extends ActionBarActivity {
     private final String LOG_TAG=MainActivity.class.getSimpleName();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(LOG_TAG,"inside onCreate event handler");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -30,6 +31,42 @@ public class MainActivity extends ActionBarActivity {
             transaction.commit();
         }
     }
+
+    @Override
+    protected void onStart() {
+        Log.d(LOG_TAG,"inside onStart event handler");
+        super.onStart();
+    }
+    @Override
+    protected void onResume() {
+        Log.d(LOG_TAG,"inside onResume event handler");
+        super.onResume();
+    }
+    @Override
+      protected void onPause() {
+        Log.d(LOG_TAG,"inside onPause event handler");
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(LOG_TAG,"inside onStop event handler");
+        super.onStop();
+    }
+
+    @Override
+    protected void onRestart() {
+        Log.d(LOG_TAG,"inside onRestart event handler");
+        super.onRestart();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(LOG_TAG,"inside onDestroy event handler");
+        super.onDestroy();
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
