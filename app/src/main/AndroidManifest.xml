@@ -33,6 +33,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.meroweather.meroweather.MainActivity" />
         </activity>
+        <provider
+            android:authorities="com.meroweather.meroweather"
+            android:name="com.meroweather.meroweather.Data.WeatherProvider" />
     </application>
 
 </manifest>
